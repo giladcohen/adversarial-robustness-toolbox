@@ -11,6 +11,10 @@ import torch.nn.functional as F
 import torchvision.transforms as transforms
 from torch.utils.data import TensorDataset, Dataset, DataLoader
 
+import sys
+sys.path.insert(0, ".")
+sys.path.insert(0, "./adversarial_robustness_toolbox")
+
 from art.classifiers import PyTorchClassifier
 from art.data_generators import PyTorchDataGenerator
 from art.defences.trainer import AdversarialTrainerFBFPyTorch
