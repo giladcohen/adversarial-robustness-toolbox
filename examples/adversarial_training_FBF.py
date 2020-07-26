@@ -23,6 +23,12 @@ The code for the model architecture has been adopted from
 https://github.com/anonymous-sushi-armadillo/fast_is_better_than_free_CIFAR10/blob/master/preact_resnet.py
 """
 
+# check if cuda is available
+is_cuda = torch.cuda.is_available()
+use_apex = True
+if use_apex:
+    import apex.amp as amp
+
 
 class PreActBlock(nn.Module):
     """Pre-activation version of the BasicBlock."""
@@ -177,8 +183,9 @@ dataloader = DataLoader(dataset, batch_size=128)
 
 # Step 2: create the PyTorch model
 model = PreActResNet18()
-# For running on GPU replace the model with the
-# model = PreActResNet18().cuda()
+
+if is_cuda:
+    model.cuda()
 
 model.apply(initialize_weights)
 model.train()
@@ -186,7 +193,8 @@ model.train()
 opt = torch.optim.SGD(model.parameters(), lr=0.21, momentum=0.9, weight_decay=5e-4)
 
 # if you have apex installed, the following line should be uncommented for faster processing
-# model, opt = amp.initialize(model, opt, opt_level="O2", loss_scale=1.0, master_weights=False)
+if use_apex:
+    model, opt = amp.initialize(model, opt, opt_level="O2", loss_scale=1.0, master_weights=False)
 
 criterion = nn.CrossEntropyLoss()
 # Step 3: Create the ART classifier
@@ -211,25 +219,25 @@ attack = ProjectedGradientDescent(
     num_random_init=5,
     batch_size=32,
 )
-x_test_attack = attack.generate(x_test)
-x_test_attack_pred = np.argmax(classifier.predict(x_test_attack), axis=1)
-print(
-    "Accuracy on original PGD adversarial samples: %.2f%%"
-    % np.sum(x_test_attack_pred == np.argmax(y_test, axis=1))
-    / x_test.shape[0]
-    * 100
-)
+# x_test_attack = attack.generate(x_test)
+# x_test_attack_pred = np.argmax(classifier.predict(x_test_attack), axis=1)
+# print(
+#     "Accuracy on original PGD adversarial samples: %.2f%%"
+#     % np.sum(x_test_attack_pred == np.argmax(y_test, axis=1))
+#     / x_test.shape[0]
+#     * 100
+# )
 
 # Step 4: Create the trainer object - AdversarialTrainerFBFPyTorch
 # if you have apex installed, change use_amp to True
 epsilon = 8.0 / 255.0
-trainer = AdversarialTrainerFBFPyTorch(classifier, eps=epsilon, use_amp=False)
+trainer = AdversarialTrainerFBFPyTorch(classifier, eps=epsilon, use_amp=use_apex)
 
 # Build a Keras image augmentation object and wrap it in ART
 art_datagen = PyTorchDataGenerator(iterator=dataloader, size=x_train.shape[0], batch_size=128)
 
 # Step 5: fit the trainer
-trainer.fit_generator(art_datagen, nb_epochs=30)
+trainer.fit_generator(art_datagen, nb_epochs=1)
 
 x_test_attack = attack.generate(x_test)
 x_test_attack_pred = np.argmax(classifier.predict(x_test_attack), axis=1)
