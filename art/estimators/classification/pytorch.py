@@ -180,9 +180,9 @@ class PyTorchClassifier(ClassGradientsMixin, ClassifierMixin, PyTorchEstimator):
 
             with torch.no_grad():
                 model_outputs = self._model(torch.from_numpy(x_preprocessed[begin:end]).to(self._device))
-            output = model_outputs[-1]
+            output = model_outputs[-1]['logits']
             # results[begin:end] = output.detach().cpu().numpy()
-            results[begin:end] = output['logits'].detach().cpu().numpy()
+            results[begin:end] = output.detach().cpu().numpy()
 
         # Apply postprocessing
         predictions = self._apply_postprocessing(preds=results, fit=False)
@@ -235,7 +235,7 @@ class PyTorchClassifier(ClassGradientsMixin, ClassifierMixin, PyTorchEstimator):
                 model_outputs = self._model(i_batch)
 
                 # Form the loss function
-                loss = self._loss(model_outputs[-1], o_batch)
+                loss = self._loss(model_outputs[-1]['logits'], o_batch)
 
                 # Actual training
                 loss.backward()
@@ -281,7 +281,7 @@ class PyTorchClassifier(ClassGradientsMixin, ClassifierMixin, PyTorchEstimator):
                     model_outputs = self._model(i_batch)
 
                     # Form the loss function
-                    loss = self._loss(model_outputs[-1], o_batch)
+                    loss = self._loss(model_outputs[-1]['logits'], o_batch)
 
                     # Actual training
                     loss.backward()
@@ -440,7 +440,7 @@ class PyTorchClassifier(ClassGradientsMixin, ClassifierMixin, PyTorchEstimator):
 
         # Compute the gradient and return
         model_outputs = self._model(x)
-        loss = self._loss(model_outputs[-1], y)
+        loss = self._loss(model_outputs[-1]['logits'], y)
 
         # Clean gradients
         self._model.zero_grad()
