@@ -335,7 +335,7 @@ class PyTorchClassifier(ClassGradientsMixin, ClassifierMixin, PyTorchEstimator):
             input_grad = x_preprocessed
 
         # Set where to get gradient from
-        preds = model_outputs[-1]
+        preds = model_outputs[-1]['logits']
 
         # Compute the gradient
         grads = []
