@@ -93,10 +93,10 @@ def deprecated(end_version: str, *, reason: str = "", replaced_by: str = "") -> 
         @wraps(function)
         def wrapper(*args, **kwargs):
             warnings.simplefilter("always", category=DeprecationWarning)
-            warnings.warn(
-                deprecated_msg + replaced_msg + reason_msg, category=DeprecationWarning, stacklevel=2,
-            )
-            warnings.simplefilter("default", category=DeprecationWarning)
+            # warnings.warn(
+            #     deprecated_msg + replaced_msg + reason_msg, category=DeprecationWarning, stacklevel=2,
+            # )
+            # warnings.simplefilter("default", category=DeprecationWarning)
             return function(*args, **kwargs)
 
         return wrapper
@@ -150,7 +150,7 @@ def deprecated_keyword_arg(identifier: str, end_version: str, *, reason: str = "
 
             if params.arguments[identifier] is not Deprecated:
                 warnings.simplefilter("always", category=DeprecationWarning)
-                warnings.warn(deprecated_msg + replaced_msg + reason_msg, category=DeprecationWarning, stacklevel=2)
+                # warnings.warn(deprecated_msg + replaced_msg + reason_msg, category=DeprecationWarning, stacklevel=2)
                 warnings.simplefilter("default", category=DeprecationWarning)
             return function(*args, **kwargs)
 
